@@ -2,6 +2,7 @@ import { createCollabToken } from "@/lib/cms/collab-token";
 import { requireWorkspaceAccess } from "@/lib/cms/auth/guards";
 import type { CmsAppOptions } from "@/index";
 import { CollabProvider } from "./collab-context";
+import { CmsSessionProvider } from "./cms-session-context";
 import { DataLayer } from "@/data/cms-data-layer";
 import { LayoutShell } from "./layout-shell";
 import { routerAuthErrorHandler } from "@/lib/auth/guards/router";
@@ -41,12 +42,15 @@ export default async function CmsLayout(
           version: post.version,
         }))}
       >
-        <LayoutShell
-          workspace={{ name: workspace.name, slug: workspace.slug }}
-          user={{ id: session.user.id, email: session.user.email ?? null }}
+        <CmsSessionProvider
+          value={{
+            workspace: { name: workspace.name, slug: workspace.slug },
+            user: { id: session.user.id, email: session.user.email ?? null },
+            membershipRole: membership.role,
+          }}
         >
-          {children}
-        </LayoutShell>
+          <LayoutShell>{children}</LayoutShell>
+        </CmsSessionProvider>
       </DataLayer>
     </CollabProvider>
   );

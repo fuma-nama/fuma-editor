@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Checkbox } from "@base-ui/react/checkbox";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectIcon,
   SelectItem,
   SelectItemText,
   SelectList,
@@ -14,8 +13,6 @@ import {
   SelectValue,
   SelectContent,
 } from "@/components/ui/select";
-
-type Provider = "local_git" | "github";
 
 interface PublisherTargetFormProps {
   onSubmit: (formData: FormData) => void | Promise<void>;
@@ -26,7 +23,7 @@ interface FormSelectProps {
   name: string;
   value: string;
   disabled?: boolean;
-  onValueChange: (value: string) => void;
+  onValueChange: (value: string | null) => void;
   options: Array<{ value: string; label: string }>;
 }
 
@@ -35,12 +32,11 @@ function FormSelect({ name, value, disabled, onValueChange, options }: FormSelec
     <Select
       name={name}
       value={value}
-      onValueChange={(next) => onValueChange(String(next ?? ""))}
+      onValueChange={(next) => onValueChange(next)}
       disabled={disabled}
     >
       <SelectTrigger>
         <SelectValue />
-        <SelectIcon className="text-xs text-fe-muted-foreground">▾</SelectIcon>
       </SelectTrigger>
       <SelectContent>
         <SelectList className="max-h-64 overflow-auto">
@@ -55,20 +51,32 @@ function FormSelect({ name, value, disabled, onValueChange, options }: FormSelec
   );
 }
 
+interface Publisher {
+  value: string;
+  label: string;
+  hint: string;
+}
+
+const defaultPublishers: Publisher[] = [
+  {
+    value: "local_git",
+    label: "Local Git",
+    hint: "Publish files into a local git repository path on this machine.",
+  },
+  {
+    value: "github",
+    label: "GitHub",
+    hint: "Publish directly to a GitHub repository through the GitHub API.",
+  },
+];
+
 export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormProps) {
-  const [provider, setProvider] = useState<Provider>("local_git");
+  const [provider, setProvider] = useState<Publisher>(defaultPublishers[0]!);
   const [localGitExtension, setLocalGitExtension] = useState<"mdx" | "md">("mdx");
   const [githubExtension, setGithubExtension] = useState<"mdx" | "md">("mdx");
   const [commitEnabled, setCommitEnabled] = useState(false);
 
-  const providerHint = useMemo(() => {
-    if (provider === "github") {
-      return "Publish directly to a GitHub repository through the GitHub API.";
-    }
-    return "Publish files into a local git repository path on this machine.";
-  }, [provider]);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     await onSubmit(formData);
@@ -81,23 +89,46 @@ export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormP
         <Input name="name" required placeholder="e.g. Main blog publisher" disabled={disabled} />
       </div>
 
-      <div className="grid gap-1">
-        <label className="text-xs text-fe-muted-foreground">Provider</label>
-        <FormSelect
+      <fieldset className="flex flex-col gap-1">
+        <label htmlFor="provider" className="text-xs text-fe-muted-foreground">
+          Provider
+        </label>
+        <Select
+          id="provider"
           name="provider"
           value={provider}
-          onValueChange={(value) => setProvider(value as Provider)}
+          onValueChange={(value) => value && setProvider(value)}
           disabled={disabled}
-          options={[
-            { value: "local_git", label: "Local Git" },
-            { value: "github", label: "GitHub" },
-          ]}
-        />
-        <p className="text-[11px] text-fe-muted-foreground">{providerHint}</p>
-      </div>
+          itemToStringLabel={(item) => item.label}
+          itemToStringValue={(item) => item.value}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a publish destination">
+              {(publisher: Publisher) => (
+                <span>
+                  <p className="font-medium mb-1">{publisher.label}</p>
+                  <p className="text-xs text-fe-muted-foreground">{publisher.hint}</p>
+                </span>
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectList className="max-h-64 overflow-auto">
+              {defaultPublishers.map((option) => (
+                <SelectItem key={option.value} value={option}>
+                  <SelectItemText>
+                    <p className="font-medium mb-1">{option.label}</p>
+                    <p className="text-xs text-fe-muted-foreground">{option.hint}</p>
+                  </SelectItemText>
+                </SelectItem>
+              ))}
+            </SelectList>
+          </SelectContent>
+        </Select>
+      </fieldset>
 
-      {provider === "local_git" ? (
-        <div className="grid gap-3 rounded-fe border border-fe-border bg-fe-muted p-3">
+      {provider.value === "local_git" && (
+        <div className="grid gap-3 rounded-md border border-fe-border bg-fe-muted p-3">
           <p className="text-xs font-medium text-fe-foreground">Local Git Configuration</p>
           <div className="grid gap-1">
             <label className="text-xs text-fe-muted-foreground">Repository Path</label>
@@ -130,15 +161,12 @@ export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormP
           </div>
 
           <label className="flex items-center gap-2 text-xs text-fe-muted-foreground">
-            <Checkbox.Root
+            <Checkbox
               name="commitEnabled"
               checked={commitEnabled}
               onCheckedChange={setCommitEnabled}
               disabled={disabled}
-              className="grid size-4 place-items-center rounded-[4px] border border-fe-border bg-fe-input text-[11px] text-fe-foreground transition-colors data-checked:border-fe-ring data-checked:bg-fe-accent disabled:opacity-60"
-            >
-              <Checkbox.Indicator>✓</Checkbox.Indicator>
-            </Checkbox.Root>
+            />
             Create a git commit after writing files
           </label>
 
@@ -151,8 +179,9 @@ export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormP
             />
           </div>
         </div>
-      ) : (
-        <div className="grid gap-3 rounded-fe border border-fe-border bg-fe-muted p-3">
+      )}
+      {provider.value === "github" && (
+        <div className="grid gap-3 rounded-md border border-fe-border bg-fe-muted p-3">
           <p className="text-xs font-medium text-fe-foreground">GitHub Configuration</p>
           <div className="grid gap-1">
             <label className="text-xs text-fe-muted-foreground">GitHub Token</label>

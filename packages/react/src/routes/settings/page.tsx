@@ -4,22 +4,16 @@ import { SettingsView } from "./settings-view";
 import { routerAuthErrorHandler } from "@/lib/auth/guards/router";
 
 export default async function CmsSettingsPage(options: CmsAppOptions) {
-  const { session, workspace } = await requireWorkspaceAccess(
+  const { workspace } = await requireWorkspaceAccess(
     ["admin", "editor", "viewer"],
     options,
     routerAuthErrorHandler(options),
   );
   const { storage } = options;
-  const [targets, membership] = await Promise.all([
-    storage.listPublishTargets(workspace.id),
-    storage.getWorkspaceMember(workspace.id, session.user.id),
-  ]);
+  const targets = await storage.listPublishTargets(workspace.id);
 
   return (
     <SettingsView
-      workspace={{ name: workspace.name, slug: workspace.slug }}
-      user={{ email: session.user.email ?? null, id: session.user.id }}
-      membershipRole={membership?.role ?? null}
       initialTargets={targets.map((target) => ({
         id: target.id,
         name: target.name,

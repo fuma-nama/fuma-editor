@@ -24,7 +24,4 @@
   --color-fe-success: oklch(0.74 0.09 155);
   --color-fe-warning: oklch(0.8 0.11 86);
   --color-fe-info: oklch(0.72 0.08 248);
-
-  --radius-fe: 0.65rem;
-  --radius-fe-lg: 0.9rem;
 }

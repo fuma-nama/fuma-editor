@@ -13,22 +13,13 @@ import { PublishPopover } from "@/components/publish-popover";
 import { useCmsStore } from "@/data/cms-store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-type MembershipRole = "admin" | "editor" | "viewer" | null;
+import { canPublish } from "@/lib/auth/guards/client";
+import { useCmsSession } from "@/routes/cms-session-context";
 
 type DashboardPost = CmsPostSummaryDto;
 type DashboardTarget = Pick<CmsTargetDto, "id" | "name" | "provider">;
 
 interface DashboardProps {
-  workspace: {
-    name: string;
-    slug: string;
-  };
-  user: {
-    email: string | null;
-    id: string;
-  };
-  membershipRole: MembershipRole;
   initialTargets: DashboardTarget[];
   initialTrash: TrashEntrySummary[];
 }
@@ -48,6 +39,7 @@ function slugify(input: string) {
 }
 
 export function Dashboard(props: DashboardProps) {
+  const { membershipRole } = useCmsSession();
   const router = useRouter();
   const postsById = useCmsStore((state) => state.postsById);
   const postIds = useCmsStore((state) => state.postIds);
@@ -59,11 +51,11 @@ export function Dashboard(props: DashboardProps) {
   const [isCreatingPost, startCreatePost] = useTransition();
   const [deletingPostId, startDeletePost] = useTransition();
 
-  const canPublish = props.membershipRole === "admin" || props.membershipRole === "editor";
+  const publishEnabled = canPublish(membershipRole);
   const targets = props.initialTargets;
 
   function createDraft() {
-    if (!(props.membershipRole === "admin" || props.membershipRole === "editor")) {
+    if (!canPublish(membershipRole)) {
       return;
     }
     setPostError(null);
@@ -98,7 +90,7 @@ export function Dashboard(props: DashboardProps) {
   }
 
   function deletePost(post: DashboardPost) {
-    if (!(props.membershipRole === "admin" || props.membershipRole === "editor")) return;
+    if (!canPublish(membershipRole)) return;
     setPostError(null);
     startDeletePost(async () => {
       const result = await deletePostAction(post.id);
@@ -146,10 +138,7 @@ export function Dashboard(props: DashboardProps) {
           <div className="flex items-center gap-3">
             <Button
               onClick={createDraft}
-              disabled={
-                isCreatingPost ||
-                !(props.membershipRole === "admin" || props.membershipRole === "editor")
-              }
+              disabled={isCreatingPost || !canPublish(membershipRole)}
               variant="primary"
               className="transition-opacity"
             >
@@ -185,7 +174,7 @@ export function Dashboard(props: DashboardProps) {
                   <button
                     type="button"
                     onClick={() => deletePost(post)}
-                    disabled={deletingPostId || !canPublish}
+                    disabled={deletingPostId || !publishEnabled}
                     className="text-xs text-fe-destructive underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Delete
@@ -193,7 +182,7 @@ export function Dashboard(props: DashboardProps) {
                 </div>
                 <PublishPopover
                   postId={post.id}
-                  canPublish={canPublish}
+                  canPublish={publishEnabled}
                   onSuccess={() => router.refresh()}
                   targets={targets.map((target) => ({
                     id: target.id,
@@ -205,7 +194,7 @@ export function Dashboard(props: DashboardProps) {
             </Card>
           ))}
           {posts.length === 0 ? (
-            <div className="rounded-fe-lg border border-dashed border-fe-border bg-fe-muted/40 p-6 text-center">
+            <div className="rounded-lg border border-dashed border-fe-border bg-fe-muted/40 p-6 text-center">
               <p className="text-sm text-fe-muted-foreground">No posts yet</p>
               <p className="mt-1 text-xs text-fe-muted-foreground">
                 Click "Create draft" to start editing immediately.
@@ -233,7 +222,7 @@ export function Dashboard(props: DashboardProps) {
                   </div>
                   <PublishPopover
                     postId={entry.post.id}
-                    canPublish={canPublish}
+                    canPublish={publishEnabled}
                     onSuccess={() => router.refresh()}
                     targets={targets.map((target) => ({
                       id: target.id,
@@ -245,7 +234,7 @@ export function Dashboard(props: DashboardProps) {
               </Card>
             ))}
           {trash.filter((entry) => entry.unsyncedTargets > 0).length === 0 ? (
-            <div className="rounded-fe border border-dashed border-fe-border bg-fe-muted/40 p-4 text-center text-xs text-fe-muted-foreground">
+            <div className="rounded-md border border-dashed border-fe-border bg-fe-muted/40 p-4 text-center text-xs text-fe-muted-foreground">
               Trash is empty or fully synced.
             </div>
           ) : null}

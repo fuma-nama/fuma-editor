@@ -12,7 +12,7 @@ export const PopoverTrigger = Popover.Trigger;
 export const PopoverClose = Popover.Close;
 
 const popoverContentVariants = cva(
-  "z-30 rounded-fe-lg border border-fe-border bg-fe-popover p-3 text-fe-popover-foreground shadow-2xl",
+  "z-30 rounded-lg border border-fe-border bg-fe-popover p-3 text-fe-popover-foreground shadow-2xl",
   {
     variants: {
       size: {

@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
-const cardVariants = cva("rounded-fe-lg border border-fe-border", {
+const cardVariants = cva("rounded-lg border border-fe-border", {
   variants: {
     tone: {
       default: "bg-fe-card text-fe-card-foreground",

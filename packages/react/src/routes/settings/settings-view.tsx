@@ -4,9 +4,10 @@ import { useState, useTransition } from "react";
 import { createTargetResponseSchema, type CmsTargetDto } from "@/lib/cms/validation";
 import { PublisherTargetForm } from "@/components/publisher-target-form";
 import { Card } from "@/components/ui/card";
+import { canManagePublisherTargets } from "@/lib/auth/guards/client";
+import { useCmsSession } from "@/routes/cms-session-context";
 
 type TargetProvider = "github" | "local_git";
-type MembershipRole = "admin" | "editor" | "viewer" | null;
 
 type DashboardTarget = CmsTargetDto & {
   provider: TargetProvider;
@@ -15,15 +16,6 @@ type DashboardTarget = CmsTargetDto & {
 };
 
 interface SettingsViewProps {
-  workspace: {
-    name: string;
-    slug: string;
-  };
-  user: {
-    email: string | null;
-    id: string;
-  };
-  membershipRole: MembershipRole;
   initialTargets: DashboardTarget[];
 }
 
@@ -103,10 +95,11 @@ function renderTargetSummary(target: DashboardTarget) {
 }
 
 export function SettingsView(props: SettingsViewProps) {
+  const { workspace, user, membershipRole } = useCmsSession();
   const [targets, setTargets] = useState(props.initialTargets);
   const [targetError, setTargetError] = useState<string | null>(null);
   const [isCreatingTarget, startCreateTarget] = useTransition();
-  const canManageTargets = props.membershipRole === "admin";
+  const canManageTargets = canManagePublisherTargets(membershipRole);
 
   async function handleCreateTarget(formData: FormData) {
     if (!canManageTargets) return;
@@ -195,12 +188,11 @@ export function SettingsView(props: SettingsViewProps) {
         <div>
           <h2 className="text-lg font-semibold text-fe-foreground">Settings</h2>
           <p className="mt-1 text-sm text-fe-muted-foreground">
-            Workspace: {props.workspace.name} ({props.workspace.slug}) - Role:{" "}
-            {props.membershipRole ?? "none"}
+            Workspace: {workspace.name} ({workspace.slug}) - Role: {membershipRole}
           </p>
         </div>
         <div className="text-right text-xs text-fe-muted-foreground">
-          <p>{props.user.email ?? props.user.id}</p>
+          <p>{user.email ?? user.id}</p>
           <p className="mt-0.5">Publisher configuration</p>
         </div>
       </section>
@@ -226,7 +218,7 @@ export function SettingsView(props: SettingsViewProps) {
             {targets.map((target) => (
               <article
                 key={target.id}
-                className="rounded-fe border border-fe-border bg-fe-muted p-3 text-xs"
+                className="rounded-md border border-fe-border bg-fe-muted p-3 text-xs"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -241,7 +233,7 @@ export function SettingsView(props: SettingsViewProps) {
               </article>
             ))}
             {targets.length === 0 ? (
-              <p className="rounded-fe border border-dashed border-fe-border p-3 text-xs text-fe-muted-foreground">
+              <p className="rounded-md border border-dashed border-fe-border p-3 text-xs text-fe-muted-foreground">
                 No targets configured yet.
               </p>
             ) : null}

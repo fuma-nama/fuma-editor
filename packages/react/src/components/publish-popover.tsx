@@ -137,12 +137,12 @@ export function PublishPopover({ postId, targets, canPublish, onSuccess }: Publi
                   Run each publisher and inspect individual outcomes.
                 </p>
               </div>
-              <PopoverClose className="rounded-fe border border-fe-border px-2 py-1 text-[11px] text-fe-muted-foreground hover:bg-fe-accent">
+              <PopoverClose className="rounded-md border border-fe-border px-2 py-1 text-[11px] text-fe-muted-foreground hover:bg-fe-accent">
                 Close
               </PopoverClose>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2 rounded-fe border border-fe-border bg-fe-muted p-2">
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-md border border-fe-border bg-fe-muted p-2">
               <p className="text-xs text-fe-muted-foreground">
                 {!canPublish
                   ? "You only have viewer permission."
@@ -153,7 +153,7 @@ export function PublishPopover({ postId, targets, canPublish, onSuccess }: Publi
               <button
                 onClick={publishAll}
                 disabled={targets.length === 0 || isPending || !canPublish}
-                className="rounded-fe border border-fe-border bg-fe-secondary px-2 py-1 text-xs text-fe-secondary-foreground hover:bg-fe-accent disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-fe-border bg-fe-secondary px-2 py-1 text-xs text-fe-secondary-foreground hover:bg-fe-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Publish all
               </button>
@@ -167,7 +167,7 @@ export function PublishPopover({ postId, targets, canPublish, onSuccess }: Publi
                 return (
                   <article
                     key={target.id}
-                    className="rounded-fe border border-fe-border bg-fe-muted p-2.5"
+                    className="rounded-md border border-fe-border bg-fe-muted p-2.5"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div>
@@ -204,7 +204,7 @@ export function PublishPopover({ postId, targets, canPublish, onSuccess }: Publi
                       <button
                         onClick={() => void publishTarget(target.id)}
                         disabled={isRunning || !canPublish}
-                        className="rounded-fe border border-fe-border bg-fe-secondary px-2 py-1 text-[11px] text-fe-secondary-foreground hover:bg-fe-accent disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-md border border-fe-border bg-fe-secondary px-2 py-1 text-[11px] text-fe-secondary-foreground hover:bg-fe-accent disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isRunning ? "Publishing..." : "Publish target"}
                       </button>

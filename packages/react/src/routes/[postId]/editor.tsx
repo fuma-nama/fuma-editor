@@ -7,6 +7,8 @@ import Collaboration from "@tiptap/extension-collaboration";
 import { WebSocketStatus, type onStatusParameters } from "@hocuspocus/provider";
 import * as Y from "yjs";
 import { PublishPopover } from "@/components/publish-popover";
+import { canPublish } from "@/lib/auth/guards/client";
+import { useCmsSession } from "@/routes/cms-session-context";
 import { useCollab } from "@/routes/collab-context";
 import { Badge, badgeVariantForCollabConnection } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +17,6 @@ import { Input, Textarea } from "@/components/ui/input";
 
 interface EditorProps {
   postId: string;
-  canPublish: boolean;
   targets: Array<{
     id: string;
     name: string;
@@ -31,6 +32,8 @@ interface EditorProps {
 }
 
 export function Editor(props: EditorProps) {
+  const { membershipRole } = useCmsSession();
+  const publishEnabled = canPublish(membershipRole);
   const collab = useCollab();
   const [connectionStatus, setConnectionStatus] = useState<
     "connecting" | "connected" | "disconnected" | "error"
@@ -168,7 +171,7 @@ export function Editor(props: EditorProps) {
 
               <PublishPopover
                 postId={props.postId}
-                canPublish={props.canPublish}
+                canPublish={publishEnabled}
                 targets={props.targets}
               />
             </div>
@@ -189,7 +192,7 @@ export function Editor(props: EditorProps) {
             <div className="p-4">
               <EditorContent
                 editor={editor}
-                className="prose prose-sm prose-invert max-w-none min-h-[420px] rounded-fe border border-fe-border bg-fe-input px-4 py-3"
+                className="prose prose-sm prose-invert max-w-none min-h-[420px] rounded-md border border-fe-border bg-fe-input px-4 py-3"
               />
             </div>
           </Card>

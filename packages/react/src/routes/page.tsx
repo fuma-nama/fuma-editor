@@ -5,15 +5,14 @@ import { Dashboard } from "./dashboard";
 import { routerAuthErrorHandler } from "@/lib/auth/guards/router";
 
 export default async function CmsDashboardPage(options: CmsAppOptions) {
-  const { session, workspace } = await requireWorkspaceAccess(
+  const { workspace } = await requireWorkspaceAccess(
     ["admin", "editor", "viewer"],
     options,
     routerAuthErrorHandler(options),
   );
   const { storage } = options;
-  const [targets, membership, deletedPosts] = await Promise.all([
+  const [targets, deletedPosts] = await Promise.all([
     storage.listPublishTargets(workspace.id),
-    storage.getWorkspaceMember(workspace.id, session.user.id),
     storage.listDeletedWorkspacePosts(workspace.id),
   ]);
   const activeTargets = targets.filter((target) => target.active);
@@ -25,9 +24,6 @@ export default async function CmsDashboardPage(options: CmsAppOptions) {
 
   return (
     <Dashboard
-      workspace={{ name: workspace.name, slug: workspace.slug }}
-      user={{ email: session.user.email ?? null, id: session.user.id }}
-      membershipRole={membership?.role ?? null}
       initialTargets={targets.map((target) => ({
         id: target.id,
         name: target.name,

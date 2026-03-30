@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 function SignInFallback() {
   return (
-    <div className="w-full max-w-sm rounded-fe-lg border border-fe-border bg-fe-card p-6 text-sm text-fe-muted-foreground">
+    <div className="w-full max-w-sm rounded-lg border border-fe-border bg-fe-card p-6 text-sm text-fe-muted-foreground">
       Loading…
     </div>
   );
