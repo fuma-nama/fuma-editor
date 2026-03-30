@@ -1,6 +1,4 @@
-import { CmsCatchAllPage } from "@fuma-editor/react/next";
+import { CmsCatchAllPage } from "@fuma-editor/react/next/ui";
 import { cmsOptions } from "@/lib/editor";
 
-export default function Page({ params }: PageProps<"/cms/[[...slug]]">) {
-  return CmsCatchAllPage({ params, options: cmsOptions });
-}
+export default CmsCatchAllPage(cmsOptions).default;

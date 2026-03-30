@@ -12,13 +12,13 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./next": "./dist/next/index.js",
-    "./next/catch-all-api-route": "./dist/next/catch-all-api-route.js",
-    "./next/catch-all-page": "./dist/next/catch-all-page.js",
+    "./next/api": "./dist/next/api.js",
+    "./next/ui": "./dist/next/ui.js",
     "./providers": "./dist/providers/index.js",
     "./providers/better-auth": "./dist/providers/better-auth.js",
     "./server/collab": "./dist/server/collab/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./styles/preset.css": "./styles/preset.css"
   },
   "publishConfig": {
     "access": "public"
@@ -26,7 +26,8 @@
   "scripts": {
     "types:check": "tsc --noEmit",
     "build": "tsdown",
-    "dev": "tsdown --watch"
+    "dev": "tsdown --watch --clean false",
+    "prisma:schema:generate": "bun ./scripts/generate-prisma-schema.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

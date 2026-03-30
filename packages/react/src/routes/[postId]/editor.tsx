@@ -8,6 +8,7 @@ import { WebSocketStatus, type onStatusParameters } from "@hocuspocus/provider";
 import * as Y from "yjs";
 import { PublishPopover } from "@/components/publish-popover";
 import { useCollab } from "@/routes/collab-context";
+import { Badge, badgeVariantForCollabConnection } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
@@ -101,7 +102,10 @@ export function Editor(props: EditorProps) {
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, Collaboration.configure({ document: bodyDoc })],
+    extensions: [
+      StarterKit.configure({ undoRedo: false }),
+      Collaboration.configure({ document: bodyDoc }),
+    ],
     content: props.initial.body,
   });
 
@@ -132,9 +136,6 @@ export function Editor(props: EditorProps) {
         <aside className="flex flex-col gap-3">
           <Card className="p-4">
             <h3 className="text-sm font-medium text-fe-foreground">Properties</h3>
-            <p className="mt-1 text-xs text-fe-muted-foreground">
-              Realtime fields powered by Y.js map.
-            </p>
 
             <div className="mt-4 grid gap-3">
               <div className="grid gap-1">
@@ -196,19 +197,9 @@ export function Editor(props: EditorProps) {
       </section>
       <div className="sticky bottom-0 mt-auto -mx-(--viewport-padding) flex items-center gap-2 border-t border-fe-border bg-fe-card px-(--viewport-padding) py-2 text-xs text-fe-card-foreground">
         <p className="font-medium text-fe-foreground">Status</p>
-        <code
-          className={
-            connectionStatus === "connected"
-              ? "text-fe-success"
-              : connectionStatus === "connecting"
-                ? "text-fe-info"
-                : connectionStatus === "error"
-                  ? "text-fe-destructive"
-                  : "text-fe-warning"
-          }
-        >
+        <Badge variant={badgeVariantForCollabConnection(connectionStatus)} className="font-mono">
           {connectionStatus}
-        </code>
+        </Badge>
       </div>
     </>
   );

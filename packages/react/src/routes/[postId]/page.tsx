@@ -2,22 +2,25 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireWorkspaceAccess } from "@/lib/cms/auth/guards";
 import type { CmsAppOptions } from "@/index";
-import { getCmsStorage } from "@/lib/cms/storage";
 import { Editor } from "./editor";
 import { cn } from "@/lib/cn";
 import { buttonVariants } from "@/components/ui/button";
+import { routerAuthErrorHandler } from "@/lib/auth/guards/router";
 
-export default async function CmsPostEditorPage({
-  params,
-}: {
-  params: Promise<{ postId: string }>;
-}, options: CmsAppOptions) {
+export default async function CmsPostEditorPage(
+  {
+    params,
+  }: {
+    params: Promise<{ postId: string }>;
+  },
+  options: CmsAppOptions,
+) {
   const [{ session, workspace }, { postId }] = await Promise.all([
-    requireWorkspaceAccess(["admin", "editor", "viewer"], options),
+    requireWorkspaceAccess(["admin", "editor", "viewer"], options, routerAuthErrorHandler(options)),
     params,
   ]);
 
-  const storage = getCmsStorage();
+  const { storage } = options;
   const [post, membership, targets] = await Promise.all([
     storage.getPostById(postId, workspace.id),
     storage.getWorkspaceMember(workspace.id, session.user.id),

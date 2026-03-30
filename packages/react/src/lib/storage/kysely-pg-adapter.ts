@@ -1,6 +1,4 @@
-import { randomUUID } from "node:crypto";
 import { customAlphabet } from "nanoid";
-import { getCmsDb } from "@/lib/cms/storage/kysely-client";
 import type {
   CmsActor,
   CmsStorage,
@@ -21,8 +19,11 @@ import type {
   CmsWorkspaceEntity,
   CmsWorkspaceMemberEntity,
 } from "@/lib/cms/schema/domain-schema";
+import { Kysely, PostgresDialect } from "kysely";
+import type { CmsDatabase } from "../schema/kysely-schema";
+import type { Pool } from "pg";
 
-const createBase32PostId = customAlphabet("abcdefghijklmnopqrstuvwxyz234567");
+const createBase32Id = customAlphabet("abcdefghijklmnopqrstuvwxyz234567");
 
 function asDate(value: string | Date): Date {
   return value instanceof Date ? value : new Date(value);
@@ -181,7 +182,21 @@ function mapRealtimeDoc(row: {
 }
 
 export class KyselyPostgresStorageAdapter implements CmsStorage {
-  private readonly db = getCmsDb();
+  readonly db: Kysely<CmsDatabase>;
+
+  constructor(readonly kysely: Kysely<unknown> | Pool) {
+    if (kysely instanceof Kysely) {
+      this.db = kysely as Kysely<CmsDatabase>;
+    } else {
+      this.db = new Kysely<CmsDatabase>({
+        dialect: new PostgresDialect({ pool: kysely }),
+      });
+    }
+  }
+
+  private generateId() {
+    return createBase32Id();
+  }
 
   async getWorkspaceBySlug(slug: string) {
     const row = await this.db
@@ -202,7 +217,7 @@ export class KyselyPostgresStorageAdapter implements CmsStorage {
   }
 
   async createWorkspace(input: Pick<CmsWorkspaceEntity, "slug" | "name">) {
-    const id = randomUUID();
+    const id = this.generateId();
     const now = new Date();
     const row = await this.db
       .insertInto("cms_workspace")
@@ -319,7 +334,7 @@ export class KyselyPostgresStorageAdapter implements CmsStorage {
   }
 
   async createPost(actor: CmsActor, input: CreatePostInput) {
-    const id = createBase32PostId();
+    const id = this.generateId();
     const now = new Date();
     const row = await this.db
       .insertInto("cms_post")
@@ -391,7 +406,7 @@ export class KyselyPostgresStorageAdapter implements CmsStorage {
     await this.db
       .insertInto("cms_realtime_doc")
       .values({
-        id: randomUUID(),
+        id: this.generateId(),
         postId: input.postId,
         workspaceId: input.workspaceId,
         docName: input.docName,
@@ -429,7 +444,7 @@ export class KyselyPostgresStorageAdapter implements CmsStorage {
     const row = await this.db
       .insertInto("cms_post_snapshot")
       .values({
-        id: randomUUID(),
+        id: this.generateId(),
         postId: input.postId,
         workspaceId: input.workspaceId,
         scope: input.scope,
@@ -469,7 +484,7 @@ export class KyselyPostgresStorageAdapter implements CmsStorage {
     const row = await this.db
       .insertInto("cms_publish_target")
       .values({
-        id: randomUUID(),
+        id: this.generateId(),
         workspaceId: input.workspaceId,
         provider: input.provider,
         name: input.name,
@@ -507,7 +522,7 @@ export class KyselyPostgresStorageAdapter implements CmsStorage {
     const row = await this.db
       .insertInto("cms_publish_job")
       .values({
-        id: randomUUID(),
+        id: this.generateId(),
         workspaceId: input.workspaceId,
         postId: input.postId,
         targetId: input.targetId,

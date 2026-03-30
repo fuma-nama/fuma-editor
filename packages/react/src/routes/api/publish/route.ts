@@ -1,4 +1,4 @@
-import { jsonError, jsonOkWithSchema } from "@/lib/cms/http";
+import { jsonError, jsonResponse } from "@/lib/cms/http";
 import { requireWorkspaceAccess } from "@/lib/cms/auth/guards";
 import type { CmsAppOptions } from "@/index";
 import { publishPostToTarget } from "@/lib/cms/publisher";
@@ -14,7 +14,7 @@ export async function POST(request: Request, options: CmsAppOptions) {
     const rawBody = (await request.json().catch(() => null)) as unknown;
     const parsed = publishPostBodySchema.safeParse(rawBody);
     if (!parsed.success) {
-      return jsonOkWithSchema(
+      return jsonResponse(
         cmsApiErrorSchema,
         { error: "Invalid request body", issues: parsed.error.flatten() },
         400,
@@ -27,9 +27,10 @@ export async function POST(request: Request, options: CmsAppOptions) {
       workspaceId: workspace.id,
       targetId: payload.targetId,
       actorId: session.user.id,
+      storage: options.storage,
     });
 
-    return jsonOkWithSchema(publishApiResponseSchema, result, 201);
+    return jsonResponse(publishApiResponseSchema, result, 201);
   } catch (error) {
     return jsonError(error);
   }

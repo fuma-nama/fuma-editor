@@ -1,15 +1,16 @@
 import { requireWorkspaceAccess } from "@/lib/cms/auth/guards";
 import type { CmsAppOptions } from "@/index";
-import { getCmsStorage } from "@/lib/cms/storage";
 import { buildTrashEntries } from "@/lib/cms/trash";
 import { Dashboard } from "./dashboard";
+import { routerAuthErrorHandler } from "@/lib/auth/guards/router";
 
 export default async function CmsDashboardPage(options: CmsAppOptions) {
   const { session, workspace } = await requireWorkspaceAccess(
     ["admin", "editor", "viewer"],
     options,
+    routerAuthErrorHandler(options),
   );
-  const storage = getCmsStorage();
+  const { storage } = options;
   const [targets, membership, deletedPosts] = await Promise.all([
     storage.listPublishTargets(workspace.id),
     storage.getWorkspaceMember(workspace.id, session.user.id),

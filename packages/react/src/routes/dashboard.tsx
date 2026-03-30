@@ -53,7 +53,7 @@ export function Dashboard(props: DashboardProps) {
   const postIds = useCmsStore((state) => state.postIds);
   const upsertPost = useCmsStore((state) => state.upsertPost);
   const { deletePost: deletePostAction } = useDataActions();
-  const posts = postIds.map((id) => postsById[id]).filter(Boolean);
+  const posts = postIds.flatMap((id) => postsById[id] ?? []);
   const [trash, setTrash] = useState(props.initialTrash);
   const [postError, setPostError] = useState<string | null>(null);
   const [isCreatingPost, startCreatePost] = useTransition();
@@ -115,20 +115,11 @@ export function Dashboard(props: DashboardProps) {
   }
 
   return (
-    <section className="space-y-8">
-      <section className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-fe-foreground">Dashboard</h2>
-          <p className="mt-1 text-sm text-fe-muted-foreground">
-            Workspace: {props.workspace.name} ({props.workspace.slug}) - Role:{" "}
-            {props.membershipRole ?? "none"}
-          </p>
-        </div>
-        <div className="text-right text-xs text-fe-muted-foreground">
-          <p>{props.user.email ?? props.user.id}</p>
-          <p className="mt-0.5">Realtime enabled</p>
-        </div>
-      </section>
+    <section className="flex flex-col gap-8">
+      <div>
+        <h2 className="text-lg font-semibold text-fe-foreground">Dashboard</h2>
+        <p className="mt-1 text-sm text-fe-muted-foreground">Manage your posts.</p>
+      </div>
 
       <section className="grid gap-3 sm:grid-cols-3">
         <Card className="p-4">
@@ -153,9 +144,6 @@ export function Dashboard(props: DashboardProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-sm font-medium text-fe-foreground">Posts</h3>
           <div className="flex items-center gap-3">
-            <p className="text-xs text-fe-muted-foreground">
-              Select a post to edit collaboratively.
-            </p>
             <Button
               onClick={createDraft}
               disabled={

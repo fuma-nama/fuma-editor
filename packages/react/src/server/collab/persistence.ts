@@ -1,19 +1,19 @@
 import * as Y from "yjs";
-import { getCmsStorage } from "@/lib/cms/storage";
+import type { CmsStorage } from "@/lib/cms/storage/types";
 
-export async function loadYDocState(docName: string): Promise<Uint8Array | null> {
-  const doc = await getCmsStorage().getRealtimeDoc(docName);
+export async function loadYDocState(storage: CmsStorage, docName: string): Promise<Uint8Array | null> {
+  const doc = await storage.getRealtimeDoc(docName);
   return doc?.state ?? null;
 }
 
-export async function storeYDocState(input: {
+export async function storeYDocState(storage: CmsStorage, input: {
   docName: string;
   postId: string;
   workspaceId: string;
   kind: "body" | "meta";
   update: Uint8Array;
 }) {
-  const existing = await getCmsStorage().getRealtimeDoc(input.docName);
+  const existing = await storage.getRealtimeDoc(input.docName);
   const ydoc = new Y.Doc();
 
   if (existing?.state) {
@@ -23,7 +23,7 @@ export async function storeYDocState(input: {
   Y.applyUpdate(ydoc, input.update);
   const merged = Y.encodeStateAsUpdate(ydoc);
 
-  await getCmsStorage().saveRealtimeDoc({
+  await storage.saveRealtimeDoc({
     postId: input.postId,
     workspaceId: input.workspaceId,
     docName: input.docName,

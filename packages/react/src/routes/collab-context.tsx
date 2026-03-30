@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import { HocuspocusProvider } from "@hocuspocus/provider";
-import * as Y from "yjs";
+import type * as Y from "yjs";
 
 type PostDocKind = "body" | "meta";
 

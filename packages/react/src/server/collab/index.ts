@@ -5,6 +5,7 @@ import {
   type onChangePayload,
   type onLoadDocumentPayload,
 } from "@hocuspocus/server";
+import type { CmsStorage } from "@/lib/cms/storage/types";
 import { authorizeCollabConnection } from "@/server/collab/auth";
 import { loadYDocState, storeYDocState } from "@/server/collab/persistence";
 
@@ -16,7 +17,7 @@ function parseDocName(name: string) {
   return { postId, kind: kind as "body" | "meta" };
 }
 
-export async function start() {
+export async function start(storage: CmsStorage) {
   const port = Number(process.env.CMS_COLLAB_PORT ?? 1234);
 
   const server = new Server({
@@ -32,12 +33,13 @@ export async function start() {
         token,
         workspaceId,
         requiredRoles,
+        storage,
       });
       data.context.userId = auth.userId;
       data.context.workspaceId = auth.workspaceId;
     },
     async onLoadDocument(data: onLoadDocumentPayload) {
-      const persisted = await loadYDocState(data.documentName);
+      const persisted = await loadYDocState(storage, data.documentName);
       if (persisted) {
         Y.applyUpdate(data.document, persisted);
       }
@@ -47,7 +49,7 @@ export async function start() {
       const workspaceId = String(data.context.workspaceId ?? "");
       if (!workspaceId) return;
 
-      await storeYDocState({
+      await storeYDocState(storage, {
         docName: data.documentName,
         postId,
         workspaceId,

@@ -7,6 +7,6 @@
       "@/server/*": ["./src/server/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "scripts"],
   "exclude": ["node_modules", "dist"]
 }

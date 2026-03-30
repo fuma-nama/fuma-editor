@@ -1,5 +1,4 @@
-import { jsonError, jsonOkWithSchema } from "@/lib/cms/http";
-import { getCmsStorage } from "@/lib/cms/storage";
+import { jsonError, jsonResponse } from "@/lib/cms/http";
 import { requireWorkspaceAccess } from "@/lib/cms/auth/guards";
 import type { CmsAppOptions } from "@/index";
 import { buildTrashEntries } from "@/lib/cms/trash";
@@ -20,9 +19,9 @@ export async function GET(
       requireWorkspaceAccess(["admin", "editor", "viewer"], options),
       context.params,
     ]);
-    const post = await getCmsStorage().getPostById(postId, workspace.id);
-    if (!post) return jsonOkWithSchema(cmsApiErrorSchema, { error: "not found" }, 404);
-    return jsonOkWithSchema(postResponseSchema, { post });
+    const post = await options.storage.getPostById(postId, workspace.id);
+    if (!post) return jsonResponse(cmsApiErrorSchema, { error: "not found" }, 404);
+    return jsonResponse(postResponseSchema, { post });
   } catch (error) {
     return jsonError(error);
   }
@@ -41,7 +40,7 @@ export async function PATCH(
     const rawBody = (await request.json().catch(() => null)) as unknown;
     const parsed = updatePostBodySchema.safeParse(rawBody);
     if (!parsed.success) {
-      return jsonOkWithSchema(
+      return jsonResponse(
         cmsApiErrorSchema,
         { error: "Invalid request body", issues: parsed.error.flatten() },
         400,
@@ -49,7 +48,7 @@ export async function PATCH(
     }
     const payload = parsed.data;
 
-    const post = await getCmsStorage().updatePost(
+    const post = await options.storage.updatePost(
       { userId: session.user.id, workspaceId: workspace.id },
       postId,
       {
@@ -67,8 +66,8 @@ export async function PATCH(
       },
     );
 
-    if (!post) return jsonOkWithSchema(cmsApiErrorSchema, { error: "not found" }, 404);
-    return jsonOkWithSchema(postResponseSchema, { post });
+    if (!post) return jsonResponse(cmsApiErrorSchema, { error: "not found" }, 404);
+    return jsonResponse(postResponseSchema, { post });
   } catch (error) {
     return jsonError(error);
   }
@@ -84,12 +83,12 @@ export async function DELETE(
       requireWorkspaceAccess(["admin", "editor"], options),
       context.params,
     ]);
-    const storage = getCmsStorage();
+    const { storage } = options;
     const post = await storage.deletePost(
       { userId: session.user.id, workspaceId: workspace.id },
       postId,
     );
-    if (!post) return jsonOkWithSchema(cmsApiErrorSchema, { error: "not found" }, 404);
+    if (!post) return jsonResponse(cmsApiErrorSchema, { error: "not found" }, 404);
 
     const activeTargets = (await storage.listPublishTargets(workspace.id)).filter(
       (target) => target.active,
@@ -100,7 +99,7 @@ export async function DELETE(
       activeTargets,
     });
 
-    return jsonOkWithSchema(deletePostApiResponseSchema, { post, trashEntry: entry });
+    return jsonResponse(deletePostApiResponseSchema, { post, trashEntry: entry });
   } catch (error) {
     return jsonError(error);
   }

@@ -30,12 +30,11 @@ export function DataLayer({ initialPosts, children }: DataLayerProps) {
   }, [initialPosts, setPosts]);
 
   useEffect(() => {
-    const ids = [...postIds];
-    if (ids.length === 0) return;
+    if (postIds.length === 0) return;
 
     const cleanups: Array<() => void> = [];
 
-    for (const postId of ids) {
+    for (const postId of postIds) {
       const doc = new Y.Doc();
       const provider = collab.createPostProvider(postId, "meta", doc);
       const map = doc.getMap<string>("meta");

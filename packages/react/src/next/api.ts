@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import type { CmsAppOptions } from "@/index";
 import * as postsRoute from "../routes/api/posts/route";
 import * as postRoute from "../routes/api/posts/[postId]/route";
@@ -15,21 +14,16 @@ type RouteContext = {
 };
 
 type RouteHandler = (request: Request, context: RouteContext) => Promise<Response>;
+type Method = "GET" | "HEAD" | "POST" | "PATCH" | "DELETE";
 
-export type CmsCatchAllApiRouteHandlers = {
-  GET: RouteHandler;
-  HEAD: RouteHandler;
-  POST: RouteHandler;
-  PATCH: RouteHandler;
-  DELETE: RouteHandler;
-};
+export type CmsCatchAllApiRouteHandlers = Record<Method, RouteHandler>;
 
 function methodNotAllowed() {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+  return Response.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 function notFound() {
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return Response.json({ error: "Not found" }, { status: 404 });
 }
 
 async function getPathSegments(context: RouteContext) {

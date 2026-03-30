@@ -1,4 +1,4 @@
-import { cmsCatchAllApiRoute } from "@fuma-editor/react/next";
+import { cmsCatchAllApiRoute } from "@fuma-editor/react/next/api";
 import { cmsOptions } from "@/lib/editor";
 
 export const { GET, HEAD, POST, PATCH, DELETE } = cmsCatchAllApiRoute(cmsOptions);

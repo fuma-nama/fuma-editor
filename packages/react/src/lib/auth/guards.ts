@@ -1,27 +1,35 @@
 import { AuthContext, CmsAuthError, CmsAuthProvider, CmsSession } from "@/lib/cms/auth/types";
 import type { CmsAppOptions } from "@/index";
-import { ensureDefaultWorkspace, ensureWorkspaceAdmin } from "@/lib/cms/service";
+import { ensureDefaultWorkspace } from "@/lib/cms/service";
 import type { CmsRole } from "../schema/domain-schema";
+
+/** handle redirects etc when failed to match permission requriement */
+export interface AuthErrorHandler {
+  redirectUnauthenticated: () => never;
+}
 
 export async function requireWorkspaceAccess(
   allowedRoles: Array<"admin" | "editor" | "viewer">,
   options: CmsAppOptions,
+  handler?: AuthErrorHandler,
 ) {
   const provider = options.authProvider;
-  const session = await requireSession(provider);
-  const workspace = await ensureDefaultWorkspace();
-
-  // First authenticated user gets admin role for quick bootstrap.
-  await ensureWorkspaceAdmin(workspace.id, session.user.id);
+  const storage = options.storage;
+  const session = await requireSession(provider, handler);
+  const workspace = await ensureDefaultWorkspace(storage);
 
   await assertRole(provider, session, { workspaceId: workspace.id }, allowedRoles);
 
   return { provider, session, workspace };
 }
 
-export async function requireSession(provider: CmsAuthProvider): Promise<CmsSession> {
+export async function requireSession(
+  provider: CmsAuthProvider,
+  handler?: AuthErrorHandler,
+): Promise<CmsSession> {
   const session = await provider.getSession();
   if (!session) {
+    handler?.redirectUnauthenticated?.();
     throw new CmsAuthError("Authentication required", 401);
   }
   return session;

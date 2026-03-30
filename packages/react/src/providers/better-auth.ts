@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import type { CmsAuthProvider, CmsSession } from "@/lib/cms/auth/types";
 import type { CmsRole } from "@/lib/cms/schema/domain-schema";
-import { getCmsStorage } from "@/lib/cms/storage";
+import type { CmsStorage } from "@/lib/cms/storage/types";
 
 interface BetterAuthSession {
   user?: {
@@ -18,11 +18,12 @@ export interface BetterAuthLike {
 }
 
 export class BetterAuthProvider implements CmsAuthProvider {
-  constructor(private readonly auth: BetterAuthLike | null = null) {}
+  constructor(
+    private readonly auth: BetterAuthLike,
+    private readonly storage: CmsStorage,
+  ) {}
 
   async getSession(): Promise<CmsSession | null> {
-    if (!this.auth) return null;
-
     const session = await this.auth.api.getSession({
       headers: await headers(),
     });
@@ -41,7 +42,7 @@ export class BetterAuthProvider implements CmsAuthProvider {
   }
 
   async getUserRoles(userId: string, context: { workspaceId: string }): Promise<CmsRole[]> {
-    const membership = await getCmsStorage().getWorkspaceMember(context.workspaceId, userId);
+    const membership = await this.storage.getWorkspaceMember(context.workspaceId, userId);
     return membership ? [membership.role] : [];
   }
 }

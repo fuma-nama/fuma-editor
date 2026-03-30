@@ -2,7 +2,7 @@ import { buildSnapshotAwareDelta, hashSnapshotContent } from "@/lib/cms/publishe
 import { GitHubPublisherPlugin } from "@/lib/cms/publisher/github-publisher";
 import { LocalGitPublisherPlugin } from "@/lib/cms/publisher/local-git-publisher";
 import type { LocalGitPublisherConfig, PublisherPlugin } from "@/lib/cms/publisher/types";
-import { getCmsStorage } from "@/lib/cms/storage";
+import type { CmsStorage } from "@/lib/cms/storage/types";
 
 function createPublisher(target: {
   provider: "github" | "local_git";
@@ -19,8 +19,9 @@ export async function publishPostToTarget(args: {
   workspaceId: string;
   targetId: string;
   actorId: string;
+  storage: CmsStorage;
 }) {
-  const storage = getCmsStorage();
+  const { storage } = args;
   const [post, target] = await Promise.all([
     storage.getPostById(args.postId, args.workspaceId, { includeDeleted: true }),
     storage.getPublishTarget(args.targetId, args.workspaceId),
