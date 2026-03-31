@@ -20,7 +20,7 @@ interface EditorProps {
   targets: Array<{
     id: string;
     name: string;
-    provider: "github" | "local_git";
+    provider: "github" | "local-fs";
   }>;
   initial: {
     slug: string;

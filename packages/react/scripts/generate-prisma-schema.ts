@@ -35,6 +35,16 @@ function toSnakeCase(value: string): string {
     .toLowerCase();
 }
 
+/** Prisma enum members must be identifiers; use @map for canonical DB / domain strings. */
+function prismaEnumMemberLine(raw: string): string {
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(raw)) {
+    return `  ${raw}`;
+  }
+  const prismaName = raw.replace(/-/g, "_");
+  const escaped = raw.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return `  ${prismaName} @map("${escaped}")`;
+}
+
 type MapFieldContext = {
   modelName: string;
   fieldName: string;
@@ -169,13 +179,13 @@ async function generateSchema(): Promise<string> {
     "",
     ...enums.flatMap((item) => [
       `enum ${item.name} {`,
-      ...item.values.map((value) => `  ${value}`),
+      ...item.values.map(prismaEnumMemberLine),
       "}",
       "",
     ]),
     ...derivedEnums.flatMap((item) => [
       `enum ${item.name} {`,
-      ...item.values.map((value) => `  ${value}`),
+      ...item.values.map(prismaEnumMemberLine),
       "}",
       "",
     ]),

@@ -36,13 +36,3 @@ export interface PublisherPlugin {
   provider: CmsPublishTargetEntity["provider"];
   publish(input: PublishExecutionInput): Promise<PublishExecutionResult>;
 }
-
-export interface LocalGitPublisherConfig {
-  repoPath: string;
-  postsDir?: string;
-  extension?: "md" | "mdx";
-  commit?: {
-    enabled?: boolean;
-    messageTemplate?: string;
-  };
-}

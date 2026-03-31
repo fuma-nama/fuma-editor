@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const cmsPostStatusSchema = z.enum(["draft", "published", "archived"]);
-export const cmsTargetProviderSchema = z.enum(["github", "local_git"]);
+export const cmsTargetProviderSchema = z.enum(["github", "local-fs"]);
 const cmsDateLikeSchema = z.union([z.string(), z.date()]);
 
 export const cmsPostSummarySchema = z.object({

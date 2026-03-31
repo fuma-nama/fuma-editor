@@ -33,7 +33,7 @@ function setAtPath(obj: Record<string, unknown>, path: string, value: unknown) {
   let current: Record<string, unknown> = obj;
 
   for (let index = 0; index < parts.length - 1; index += 1) {
-    const segment = parts[index];
+    const segment = parts[index]!;
     const next = current[segment];
     if (!isRecord(next)) {
       current[segment] = {};
@@ -41,7 +41,7 @@ function setAtPath(obj: Record<string, unknown>, path: string, value: unknown) {
     current = current[segment] as Record<string, unknown>;
   }
 
-  current[parts[parts.length - 1]] = value;
+  current[parts[parts.length - 1]!] = value;
 }
 
 function removeAtPath(obj: Record<string, unknown>, path: string) {
@@ -49,13 +49,13 @@ function removeAtPath(obj: Record<string, unknown>, path: string) {
   let current: Record<string, unknown> = obj;
 
   for (let index = 0; index < parts.length - 1; index += 1) {
-    const segment = parts[index];
+    const segment = parts[index]!;
     const next = current[segment];
     if (!isRecord(next)) return;
     current = next;
   }
 
-  delete current[parts[parts.length - 1]];
+  delete current[parts[parts.length - 1]!];
 }
 
 function deepCloneRecord(input: Record<string, unknown>): Record<string, unknown> {

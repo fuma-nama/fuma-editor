@@ -24,7 +24,7 @@ enum CmsPostStatus {
 
 enum CmsPublishTargetProvider {
   github
-  local_git
+  local_fs @map("local-fs")
 }
 
 enum CmsPublishJobStatus {

@@ -4,7 +4,7 @@ export type CmsRole = (typeof cmsRoleValues)[number];
 export const cmsPostStatusValues = ["draft", "published", "archived"] as const;
 export type CmsPostStatus = (typeof cmsPostStatusValues)[number];
 
-export const cmsPublishTargetProviderValues = ["github", "local_git"] as const;
+export const cmsPublishTargetProviderValues = ["github", "local-fs"] as const;
 export type CmsPublishTargetProvider = (typeof cmsPublishTargetProviderValues)[number];
 
 export const cmsPublishJobStatusValues = ["pending", "running", "succeeded", "failed"] as const;

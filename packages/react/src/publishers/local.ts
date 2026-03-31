@@ -1,10 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import type { PublisherPlugin, LocalGitPublisherConfig } from "@/lib/cms/publisher/types";
+import type { PublisherPlugin } from "@/lib/cms/publisher/types";
 
-const execFileAsync = promisify(execFile);
+export interface LocalPublisherConfig {
+  repoPath: string;
+  postsDir?: string;
+  extension?: "md" | "mdx";
+}
 
 function ensureRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -35,19 +37,11 @@ function frontmatterToYaml(frontmatter: Record<string, unknown>) {
   return `${lines.join("\n")}\n`;
 }
 
-async function maybeCommit(config: LocalGitPublisherConfig, filePath: string, slug: string) {
-  if (!config.commit?.enabled) return;
-  const messageTemplate = config.commit.messageTemplate ?? "chore(cms): publish {slug}";
-  const message = messageTemplate.replace("{slug}", slug);
-  await execFileAsync("git", ["add", "-A", filePath], { cwd: config.repoPath });
-  await execFileAsync("git", ["commit", "-m", message], { cwd: config.repoPath });
-}
+export class LocalPublisherPlugin implements PublisherPlugin {
+  readonly provider = "local-fs" as const;
+  private readonly config: LocalPublisherConfig;
 
-export class LocalGitPublisherPlugin implements PublisherPlugin {
-  readonly provider = "local_git" as const;
-  private readonly config: LocalGitPublisherConfig;
-
-  constructor(config: LocalGitPublisherConfig) {
+  constructor(config: LocalPublisherConfig) {
     this.config = config;
   }
 
@@ -61,7 +55,6 @@ export class LocalGitPublisherPlugin implements PublisherPlugin {
 
     if (input.post.deletedAt) {
       await fs.rm(outputPath, { force: true });
-      await maybeCommit(this.config, outputPath, slug);
       return {
         outputRef: outputPath,
         outputPayload: payload,
@@ -74,7 +67,6 @@ export class LocalGitPublisherPlugin implements PublisherPlugin {
 
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, fileContents, "utf8");
-    await maybeCommit(this.config, outputPath, slug);
 
     return {
       outputRef: outputPath,

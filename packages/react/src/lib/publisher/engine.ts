@@ -1,17 +1,18 @@
 import { buildSnapshotAwareDelta, hashSnapshotContent } from "@/lib/cms/publisher/delta";
-import { GitHubPublisherPlugin } from "@/lib/cms/publisher/github-publisher";
-import { LocalGitPublisherPlugin } from "@/lib/cms/publisher/local-git-publisher";
-import type { LocalGitPublisherConfig, PublisherPlugin } from "@/lib/cms/publisher/types";
+
+import type { PublisherPlugin } from "@/lib/cms/publisher/types";
 import type { CmsStorage } from "@/lib/cms/storage/types";
+import { GitHubPublisherPlugin } from "@/publishers/github";
+import { LocalPublisherPlugin, type LocalPublisherConfig } from "@/publishers/local";
 
 function createPublisher(target: {
-  provider: "github" | "local_git";
+  provider: "github" | "local-fs";
   config: unknown;
 }): PublisherPlugin {
   if (target.provider === "github") {
     return new GitHubPublisherPlugin(target.config);
   }
-  return new LocalGitPublisherPlugin(target.config as LocalGitPublisherConfig);
+  return new LocalPublisherPlugin(target.config as LocalPublisherConfig);
 }
 
 export async function publishPostToTarget(args: {

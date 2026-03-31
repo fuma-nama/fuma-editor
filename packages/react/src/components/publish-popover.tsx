@@ -19,7 +19,7 @@ type PublishStatus = "idle" | "running" | "success" | "error";
 interface TargetInfo {
   id: string;
   name: string;
-  provider: "github" | "local_git";
+  provider: "github" | "local-fs";
 }
 
 interface StatusEntry {

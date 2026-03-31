@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { canManagePublisherTargets } from "@/lib/auth/guards/client";
 import { useCmsSession } from "@/routes/cms-session-context";
 
-type TargetProvider = "github" | "local_git";
+type TargetProvider = "github" | "local-fs";
 
 type DashboardTarget = CmsTargetDto & {
   provider: TargetProvider;
@@ -63,33 +63,19 @@ function renderTargetSummary(target: DashboardTarget) {
     );
   }
 
-  const repoPath = toText(config.repoPath);
+  const baseDir = toText(config.repoPath);
   const postsDir = toText(config.postsDir, "content");
   const extension = toText(config.extension, "mdx");
-  const commit = isRecord(config.commit) ? config.commit : {};
-  const commitEnabled = Boolean(commit.enabled);
-  const commitMessageTemplate = toText(commit.messageTemplate, "chore(cms): publish {slug}");
 
   return (
     <div className="mt-2 space-y-1 text-[11px] text-fe-muted-foreground">
       <p>
-        Repo path: <span className="text-fe-foreground">{repoPath}</span>
+        Base directory: <span className="text-fe-foreground">{baseDir}</span>
       </p>
       <p>
-        Path: <span className="text-fe-foreground">{postsDir}</span> | Ext:{" "}
+        Posts directory: <span className="text-fe-foreground">{postsDir}</span> | Ext:{" "}
         <span className="text-fe-foreground">{extension}</span>
       </p>
-      <p>
-        Commit:{" "}
-        <span className={commitEnabled ? "text-fe-success" : "text-fe-muted-foreground"}>
-          {commitEnabled ? "enabled" : "disabled"}
-        </span>
-      </p>
-      {commitEnabled ? (
-        <p>
-          Message: <span className="text-fe-foreground">{commitMessageTemplate}</span>
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -106,7 +92,7 @@ export function SettingsView(props: SettingsViewProps) {
     setTargetError(null);
 
     startCreateTarget(async () => {
-      const provider = String(formData.get("provider") ?? "local_git") as TargetProvider;
+      const provider = String(formData.get("provider") ?? "local-fs") as TargetProvider;
       const name = String(formData.get("name") ?? "").trim();
 
       let config: Record<string, unknown>;
@@ -133,7 +119,7 @@ export function SettingsView(props: SettingsViewProps) {
       } else {
         const repoPath = String(formData.get("repoPath") ?? "").trim();
         if (!name || !repoPath) {
-          setTargetError("Name and repository path are required.");
+          setTargetError("Name and base directory are required.");
           return;
         }
 
@@ -141,13 +127,6 @@ export function SettingsView(props: SettingsViewProps) {
           repoPath,
           postsDir: String(formData.get("postsDir") ?? "content").trim() || "content",
           extension: String(formData.get("extension") ?? "mdx").trim() === "md" ? "md" : "mdx",
-          commit: {
-            enabled: formData.get("commitEnabled") === "on",
-            messageTemplate:
-              String(
-                formData.get("commitMessageTemplate") ?? "chore(cms): publish {slug}",
-              ).trim() || "chore(cms): publish {slug}",
-          },
         };
       }
 

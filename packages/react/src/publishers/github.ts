@@ -1,6 +1,6 @@
 import type { PublisherPlugin } from "@/lib/cms/publisher/types";
 
-interface GitHubPublisherConfig {
+export interface GitHubPublisherConfig {
   token: string;
   owner: string;
   repo: string;

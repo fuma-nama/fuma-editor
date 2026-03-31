@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -59,9 +58,9 @@ interface Publisher {
 
 const defaultPublishers: Publisher[] = [
   {
-    value: "local_git",
-    label: "Local Git",
-    hint: "Publish files into a local git repository path on this machine.",
+    value: "local-fs",
+    label: "Local filesystem",
+    hint: "Write published posts as files under a directory on this machine.",
   },
   {
     value: "github",
@@ -74,7 +73,6 @@ export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormP
   const [provider, setProvider] = useState<Publisher>(defaultPublishers[0]!);
   const [localGitExtension, setLocalGitExtension] = useState<"mdx" | "md">("mdx");
   const [githubExtension, setGithubExtension] = useState<"mdx" | "md">("mdx");
-  const [commitEnabled, setCommitEnabled] = useState(false);
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -127,26 +125,30 @@ export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormP
         </Select>
       </fieldset>
 
-      {provider.value === "local_git" && (
+      {provider.value === "local-fs" && (
         <div className="grid gap-3 rounded-md border border-fe-border bg-fe-muted p-3">
-          <p className="text-xs font-medium text-fe-foreground">Local Git Configuration</p>
+          <p className="text-xs font-medium text-fe-foreground">Local filesystem</p>
           <div className="grid gap-1">
-            <label className="text-xs text-fe-muted-foreground">Repository Path</label>
+            <label className="text-xs text-fe-muted-foreground">Base directory</label>
             <Input
               name="repoPath"
               required
-              placeholder="/Users/you/dev/blog-repo"
+              placeholder="/Users/you/dev/my-site"
               disabled={disabled}
             />
+            <p className="text-[11px] text-fe-muted-foreground">
+              Each post is saved as a file under the base directory, inside the posts folder, named
+              after the post slug and chosen extension.
+            </p>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="grid gap-1">
-              <label className="text-xs text-fe-muted-foreground">Posts Directory</label>
+              <label className="text-xs text-fe-muted-foreground">Posts directory</label>
               <Input name="postsDir" defaultValue="content" disabled={disabled} />
             </div>
             <div className="grid gap-1">
-              <label className="text-xs text-fe-muted-foreground">File Extension</label>
+              <label className="text-xs text-fe-muted-foreground">File extension</label>
               <FormSelect
                 name="extension"
                 value={localGitExtension}
@@ -158,25 +160,6 @@ export function PublisherTargetForm({ onSubmit, disabled }: PublisherTargetFormP
                 ]}
               />
             </div>
-          </div>
-
-          <label className="flex items-center gap-2 text-xs text-fe-muted-foreground">
-            <Checkbox
-              name="commitEnabled"
-              checked={commitEnabled}
-              onCheckedChange={setCommitEnabled}
-              disabled={disabled}
-            />
-            Create a git commit after writing files
-          </label>
-
-          <div className="grid gap-1">
-            <label className="text-xs text-fe-muted-foreground">Commit Message Template</label>
-            <Input
-              name="commitMessageTemplate"
-              defaultValue="chore(cms): publish {slug}"
-              disabled={disabled}
-            />
           </div>
         </div>
       )}
